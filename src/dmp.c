@@ -40,18 +40,16 @@ static int dmp_ctr(struct dm_target* ti, unsigned int argc, char **argv)
     ti->error = "dm-proxy: Device lookup failed";
   }
   ti->private = proxy_context;
-  printk( KERN_DEBUG "dm-proxy for %s has been successfully created", argv[0]);
+  printk( KERN_DEBUG "dm-proxy for %s has been successfully created\n", argv[0] );
   return 0;
 }
 
-// TODO: implement
 static int dmp_map(struct dm_target* ti, struct bio* bio)
 {
   submit_bio(bio);
   return DM_MAPIO_SUBMITTED;
 }
 
-// TODO: implement
 static void dmp_dtr(struct dm_target* ti)
 {
   struct proxy_t* dmp_target = (struct proxy_t*) ti->private;
@@ -77,13 +75,13 @@ static int __init dmp_init(void)
   {
     printk(KERN_CRIT "\n Error while registering new target \n");
   }
-  printk(KERN_DEBUG "dm proxy succesfully initialized");
+  printk(KERN_DEBUG "dm proxy succesfully initialized\n");
   return 0;
 }
 
 static void __exit dmp_exit(void)
 {
-  dm_unregister_target(&dmp_target)
+  dm_unregister_target(&dmp_target);
   printk(KERN_DEBUG "proxy was unregistered");
 }
 
