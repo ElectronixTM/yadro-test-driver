@@ -54,6 +54,11 @@ static int dmp_map(struct dm_target* ti, struct bio* bio)
 // TODO: implement
 static void dmp_dtr(struct dm_target* ti)
 {
+  struct proxy_t* dmp_target = (struct proxy_t*) ti->private;
+  printk(KERN_DEBUG "Destructing proxy for device %s\n", dmp_target->dev->name);
+  dm_put_device(ti, dmp_target->dev);
+  kfree(dmp_target);
+  printk(KERN_DEBUG "Succesfully destructed dm proxy\n");
 }
 
 static struct target_type dmp_target = 
