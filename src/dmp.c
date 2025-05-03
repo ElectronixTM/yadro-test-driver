@@ -47,7 +47,8 @@ static int dmp_ctr(struct dm_target* ti, unsigned int argc, char **argv)
 // TODO: implement
 static int dmp_map(struct dm_target* ti, struct bio* bio)
 {
-  return 0;
+  submit_bio(bio);
+  return DM_MAPIO_SUBMITTED;
 }
 
 // TODO: implement
