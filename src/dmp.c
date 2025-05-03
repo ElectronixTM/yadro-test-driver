@@ -4,12 +4,13 @@
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/bio.h>
+#include <linux/bvec.h>
 
 struct proxy_t
 {
   struct dm_dev* dev;
-  size_t r_rq;
-  size_t w_rq;
+  size_t read_rq_num;
+  size_t write_rq_num;
   size_t total_read;
   size_t total_write;
 };
@@ -48,7 +49,25 @@ static int dmp_ctr(struct dm_target* ti, unsigned int argc, char **argv)
 
 static int dmp_map(struct dm_target* ti, struct bio* bio)
 {
+  struct proxy_t* proxy_context = (struct proxy_t*) ti->private;
+  bio->bi_bdev = proxy_context->dev->bdev;
+  printk(KERN_DEBUG "proxing device %s", proxy_context->dev->name);
+  switch (bio_op(bio))
+  {
+    case REQ_OP_READ:
+      proxy_context->read_rq_num += 1;
+      proxy_context->total_read += bio->bi_iter.bi_size;
+      break;
+    case REQ_OP_WRITE_ZEROES:
+    case REQ_OP_WRITE:
+      proxy_context->write_rq_num += 1;
+      proxy_context->total_write += bio->bi_iter.bi_size;
+      break;
+    default:
+      break;
+  }
   submit_bio(bio);
+  printk(KERN_DEBUG "BIO proxied");
   return DM_MAPIO_SUBMITTED;
 }
 
