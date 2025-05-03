@@ -8,8 +8,10 @@
 struct proxy_t
 {
   struct dm_dev* dev;
-  sector_t start;
-  sector_t len;
+  size_t r_rq;
+  size_t w_rq;
+  size_t total_read;
+  size_t total_write;
 };
 
 static int dmp_ctr(struct dm_target* ti, unsigned int argc, char **argv)
