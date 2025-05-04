@@ -40,18 +40,41 @@ static int dmp_ctr(struct dm_target* ti, unsigned int argc, char **argv)
         )
       )
   {
+    printk(KERN_WARNING "[dmp_ctr] opening device failed");
     ti->error = "dm-proxy: Device lookup failed";
+    kfree(proxy_context);
+    return -EINVAL;
   }
+  printk(KERN_DEBUG "[dmp_ctr] new_dev_addr: %lx", (unsigned long) proxy_context->dev);
   ti->private = proxy_context;
-  printk( KERN_DEBUG "dm-proxy for %s has been successfully created\n", argv[0] );
+  printk( KERN_DEBUG "[dmp_ctr] dm-proxy for %s has been successfully created\n", argv[0] );
   return 0;
 }
 
 static int dmp_map(struct dm_target* ti, struct bio* bio)
 {
   struct proxy_t* proxy_context = (struct proxy_t*) ti->private;
-  bio->bi_bdev = proxy_context->dev->bdev;
-  printk(KERN_DEBUG "proxing device %s", proxy_context->dev->name);
+  if (proxy_context == NULL)
+  {
+    printk(KERN_ERR "[dmp_map] context appared to be nullptr\n");
+    ti->error = "No context for dmproxy provided";
+    return DM_MAPIO_KILL;
+  }
+
+  if (proxy_context->dev == NULL)
+  {
+    printk(KERN_ERR "[dmp_map] no target device provided\n");
+    return DM_MAPIO_KILL;
+  }
+
+  // bio->bi_bdev = proxy_context->dev->bdev;
+  bio_set_dev(bio, proxy_context->dev->bdev);
+  if (bio->bi_bdev == NULL)
+  {
+    printk(KERN_ERR "[dmp_map] block device ptr is NULL\n");
+    return DM_MAPIO_KILL;
+  }
+
   switch (bio_op(bio))
   {
     case REQ_OP_READ:
