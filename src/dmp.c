@@ -45,9 +45,11 @@ static int dmp_ctr(struct dm_target* ti, unsigned int argc, char **argv)
     kfree(proxy_context);
     return -EINVAL;
   }
-  printk(KERN_DEBUG "[dmp_ctr] new_dev_addr: %lx", (unsigned long) proxy_context->dev);
   ti->private = proxy_context;
-  printk( KERN_DEBUG "[dmp_ctr] dm-proxy for %s has been successfully created\n", argv[0] );
+  printk(
+        KERN_DEBUG "[dmp_ctr] dm-proxy for %s has been "
+                   "successfully created\n", argv[0]
+        );
   return 0;
 }
 
@@ -91,16 +93,20 @@ static int dmp_map(struct dm_target* ti, struct bio* bio)
       return DM_MAPIO_KILL;
   }
   submit_bio_noacct(bio);
+
+  printk(KERN_DEBUG "[dmp_map] bio successfully proxied");
   return DM_MAPIO_SUBMITTED;
 }
 
 static void dmp_dtr(struct dm_target* ti)
 {
   struct proxy_t* dmp_target = (struct proxy_t*) ti->private;
-  printk(KERN_DEBUG "Destructing proxy for device %s\n", dmp_target->dev->name);
   dm_put_device(ti, dmp_target->dev);
   kfree(dmp_target);
-  printk(KERN_DEBUG "Succesfully destructed dm proxy\n");
+  printk(
+      KERN_DEBUG "[dmp_dtr] Succesfully destructed dm proxy for "
+                 "device %s\n", dmp_target->dev->name
+        );
 }
 
 static struct target_type dmp_target = 
@@ -117,16 +123,16 @@ static int __init dmp_init(void)
 {
   if (dm_register_target(&dmp_target) < 0)
   {
-    printk(KERN_CRIT "\n Error while registering new target \n");
+    printk(KERN_ERR "\n [dmp_init] Error while registering new target \n");
   }
-  printk(KERN_DEBUG "dm proxy succesfully initialized\n");
+  printk(KERN_DEBUG "[dmp_init] dm proxy succesfully initialized\n");
   return 0;
 }
 
 static void __exit dmp_exit(void)
 {
   dm_unregister_target(&dmp_target);
-  printk(KERN_DEBUG "proxy was unregistered");
+  printk(KERN_DEBUG "[dmp_exit] proxy was unregistered");
 }
 
 module_init(dmp_init);
