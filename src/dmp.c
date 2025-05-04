@@ -41,6 +41,7 @@ static int dmp_ctr(struct dm_target* ti, unsigned int argc, char **argv)
                 "Probably not enough memory";
     return -ENOMEM;
   }
+  memset(proxy_context, 0, sizeof(struct proxy_t));
 
   if (dm_get_device(
         ti, argv[0],
