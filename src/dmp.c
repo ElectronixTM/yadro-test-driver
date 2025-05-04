@@ -87,7 +87,8 @@ static int dmp_map(struct dm_target* ti, struct bio* bio)
       proxy_context->total_write += bio->bi_iter.bi_size;
       break;
     default:
-      break;
+      printk(KERN_WARNING "[dmp_map] unsupported bio operation\n");
+      return DM_MAPIO_KILL;
   }
   submit_bio(bio);
   printk(KERN_DEBUG "BIO proxied");
