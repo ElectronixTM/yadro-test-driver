@@ -6,15 +6,25 @@
 #include <linux/bio.h>
 #include <linux/bvec.h>
 
+/**
+ * The struct, containing minimum required info to provide to sysfs, such
+ * as amount of read and write requests and total sizes of all blocks, from
+ * requests
+ */
 struct proxy_t
 {
-  struct dm_dev* dev;
-  size_t read_rq_num;
-  size_t write_rq_num;
-  size_t total_read;
-  size_t total_write;
+  struct dm_dev* dev; /**< device to forward all bios to */
+  size_t read_rq_num; /**< total number of read requests on the device */
+  size_t write_rq_num; /**< total number of write requests on the device */
+  size_t total_read; /**< total bytes read via bios */
+  size_t total_write; /**< total bytes written to device */
 };
 
+/**
+ * aside from mandatory parameters takes a path to device to be proxied.
+ * Tries to get it and saves to context structure and initializes it's
+ * statistics
+ */
 static int dmp_ctr(struct dm_target* ti, unsigned int argc, char **argv)
 {
   if (1 != argc)
@@ -52,6 +62,11 @@ static int dmp_ctr(struct dm_target* ti, unsigned int argc, char **argv)
   return 0;
 }
 
+/**
+ * Logging specified in task info into device context and redirects
+ * read and write calls to device. Other calls are dropped because
+ * unspecified in the task text.
+ */
 static int dmp_map(struct dm_target* ti, struct bio* bio)
 {
   struct proxy_t* proxy_context = (struct proxy_t*) ti->private;
@@ -68,6 +83,7 @@ static int dmp_map(struct dm_target* ti, struct bio* bio)
     return DM_MAPIO_KILL;
   }
 
+  // redirecting bio to proxied device
   bio_set_dev(bio, proxy_context->dev->bdev);
   if (bio->bi_bdev == NULL)
   {
