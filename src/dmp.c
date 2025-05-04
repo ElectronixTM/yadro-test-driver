@@ -17,7 +17,6 @@ struct proxy_t
 
 static int dmp_ctr(struct dm_target* ti, unsigned int argc, char **argv)
 {
-
   if (1 != argc)
   {
     ti->error = "Invalid amount of arguments. Only proxied device "
@@ -69,7 +68,6 @@ static int dmp_map(struct dm_target* ti, struct bio* bio)
     return DM_MAPIO_KILL;
   }
 
-  // bio->bi_bdev = proxy_context->dev->bdev;
   bio_set_dev(bio, proxy_context->dev->bdev);
   if (bio->bi_bdev == NULL)
   {
@@ -109,7 +107,7 @@ static void dmp_dtr(struct dm_target* ti)
         );
 }
 
-static struct target_type dmp_target = 
+static struct target_type dmp_target =
 {
   .name = "dmp",
   .version={0,0,1},
