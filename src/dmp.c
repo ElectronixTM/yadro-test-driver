@@ -90,8 +90,7 @@ static int dmp_map(struct dm_target* ti, struct bio* bio)
       printk(KERN_WARNING "[dmp_map] unsupported bio operation\n");
       return DM_MAPIO_KILL;
   }
-  submit_bio(bio);
-  printk(KERN_DEBUG "BIO proxied");
+  submit_bio_noacct(bio);
   return DM_MAPIO_SUBMITTED;
 }
 
