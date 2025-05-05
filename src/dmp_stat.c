@@ -31,15 +31,16 @@ int create_dmp_stat_file(struct sysfs_helper_t* reciever, struct stat_t* stats)
   return 0;
 }
 
-int release_dmp_stat_file(struct sysfs_helper_t** reciever)
+int release_dmp_stat_file(struct sysfs_helper_t* reciever)
 {
-  struct sysfs_helper_t* temp = *reciever;
-  if (NULL == temp)
+  if (NULL == reciever)
   {
     return -EINVAL;
   }
-  device_remove_file(temp->raw_device, temp->dev_attr);
-  *reciever = NULL;
-  kfree(temp);
+  device_remove_file(reciever->raw_device, reciever->dev_attr);
+  kfree(reciever->dev_attr);
+  reciever->dev_attr = NULL;
+  kfree(reciever->raw_device);
+  reciever->raw_device = NULL;
   return 0;
 }
