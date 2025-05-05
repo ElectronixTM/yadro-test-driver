@@ -6,6 +6,8 @@
 #include <linux/bio.h>
 #include <linux/bvec.h>
 
+#include "proxy_type.h"
+
 /**
  * Aside from mandatory parameters takes a path to device to be proxied.
  * Tries to get it and saves to context structure and initializes it's
