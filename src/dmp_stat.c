@@ -65,14 +65,16 @@ int create_dmp_stat_file(struct sysfs_helper_t* reciever, struct stat_t* stats)
   }
   static DEVICE_ATTR_RO(stats);
   *attr = dev_attr_stats;
-  struct device* module_dev = kobj_to_dev(&MODULE_KOBJ);
-  if (module_dev == NULL)
+  // struct device* module_dev = kobj_to_dev(&MODULE_KOBJ);
+  struct kobject* stat_kobj = kobject_create_and_add("stat", &MODULE_KOBJ);
+  struct device* raw_dev = kobj_to_dev(stat_kobj);
+  if (raw_dev == NULL)
   {
     return -EINVAL;
   }
-  device_create_file(module_dev, attr);
-  dev_set_drvdata(module_dev, stats);
-  reciever->raw_device = module_dev;
+  device_create_file(raw_dev, attr);
+  dev_set_drvdata(raw_dev, stats);
+  reciever->raw_device = raw_dev;
   reciever->dev_attr = attr;
   return 0;
 }
