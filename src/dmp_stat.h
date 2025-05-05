@@ -6,7 +6,7 @@
  * of the proxy_t struct. after file is not needed, it
  * should be freed with `release_dmp_stat_file`
  */
-int create_dmp_stat_file(struct sysfs_helper_t* reciever);
+int create_dmp_stat_file(struct sysfs_helper_t* reciever, struct stat_t* stats);
 
 /**
  * Releases file and set zeros in `sysfs` member of
