@@ -26,7 +26,7 @@ struct stat_t
   size_t write_rq_num; /**< total number of write requests on the device */
   size_t total_read; /**< total bytes read via bios */
   size_t total_write; /**< total bytes written to device */
-}
+};
 
 /**
  * The struct, containing minimum required info to provide to sysfs, such
