@@ -7,21 +7,7 @@
 #include <linux/bvec.h>
 
 /**
- * The struct, containing minimum required info to provide to sysfs, such
- * as amount of read and write requests and total sizes of all blocks, from
- * requests
- */
-struct proxy_t
-{
-  struct dm_dev* dev; /**< device to forward all bios to */
-  size_t read_rq_num; /**< total number of read requests on the device */
-  size_t write_rq_num; /**< total number of write requests on the device */
-  size_t total_read; /**< total bytes read via bios */
-  size_t total_write; /**< total bytes written to device */
-};
-
-/**
- * aside from mandatory parameters takes a path to device to be proxied.
+ * Aside from mandatory parameters takes a path to device to be proxied.
  * Tries to get it and saves to context structure and initializes it's
  * statistics
  */
