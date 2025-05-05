@@ -7,6 +7,7 @@
 #include <linux/bvec.h>
 
 #include "proxy_type.h"
+#include "dmp_stat.h"
 
 /**
  * Aside from mandatory parameters takes a path to device to be proxied.
@@ -44,6 +45,11 @@ static int dmp_ctr(struct dm_target* ti, unsigned int argc, char **argv)
   }
 
   ti->private = proxy_context;
+  if (create_dmp_stat_file(&proxy_context->sysfs, &proxy_context->stats) != 0)
+  {
+    printk(KERN_ERR "[dmp_ctr] unable to create stats file\n");
+    goto error;
+  }
   printk(
         KERN_DEBUG "[dmp_ctr] dm-proxy for %s has been "
                    "successfully created\n", argv[0]
@@ -108,6 +114,7 @@ static int dmp_map(struct dm_target* ti, struct bio* bio)
 static void dmp_dtr(struct dm_target* ti)
 {
   struct proxy_t* dmp_target = (struct proxy_t*) ti->private;
+  release_dmp_stat_file(&dmp_target->sysfs);
   dm_put_device(ti, dmp_target->dev);
   kfree(dmp_target);
   printk(
