@@ -27,3 +27,16 @@ int create_dmp_stat_file(struct sysfs_helper_t* reciever)
   reciever->dev_attr = attr;
   return 0;
 }
+
+int release_dmp_stat_file(struct sysfs_helper_t** reciever)
+{
+  struct sysfs_helper_t* temp = *reciever;
+  if (NULL == temp)
+  {
+    return -EINVAL;
+  }
+  device_remove_file(temp->raw_device, temp->dev_attr);
+  *reciever = NULL;
+  kfree(temp);
+  return 0;
+}
