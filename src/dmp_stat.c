@@ -22,6 +22,7 @@ int create_dmp_stat_file(struct sysfs_helper_t* reciever)
   {
     return -EINVAL;
   }
+  device_create_file(raw_dev, attr);
   reciever->raw_device = raw_dev;
   reciever->dev_attr = attr;
   return 0;
