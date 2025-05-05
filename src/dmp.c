@@ -38,15 +38,19 @@ static int dmp_ctr(struct dm_target* ti, unsigned int argc, char **argv)
   {
     printk(KERN_WARNING "[dmp_ctr] opening device failed");
     ti->error = "dm-proxy: Device lookup failed";
-    kfree(proxy_context);
-    return -EINVAL;
+    goto error;
   }
+
   ti->private = proxy_context;
   printk(
         KERN_DEBUG "[dmp_ctr] dm-proxy for %s has been "
                    "successfully created\n", argv[0]
         );
   return 0;
+
+error:
+    kfree(proxy_context);
+    return -EINVAL;
 }
 
 /**
