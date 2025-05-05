@@ -25,7 +25,7 @@ int create_dmp_stat_file(struct sysfs_helper_t* reciever, struct stat_t* stats)
     return -EINVAL;
   }
   device_create_file(module_dev, attr);
-  module_dev->driver_data = stats;
+  dev_set_drvdata(module_dev, stats);
   reciever->raw_device = module_dev;
   reciever->dev_attr = attr;
   return 0;
