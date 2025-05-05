@@ -9,7 +9,38 @@
 
 #define MODULE_KOBJ ((((struct module*) THIS_MODULE)->mkobj).kobj)
 
-static ssize_t stats_show(struct device* dev, struct device_attribute* attr, char* buf);
+static ssize_t stats_show(struct device* dev, struct device_attribute* attr, char* buf)
+{
+  struct stat_t* stats = (struct stat_t*) dev_get_drvdata(dev);
+  if (NULL == stats)
+  {
+    return -EINVAL;
+  }
+  ssize_t total_out = 0;
+  total_out += sprintf(buf, "read:\n");
+  total_out += sprintf(buf, " reqs: %lu\n", stats->read_rq_num);
+  total_out += sprintf(
+      buf, " avg size: %lu\n",
+      (stats->total_read/stats->read_rq_num)
+      );
+  total_out += sprintf(buf, "write:\n");
+  total_out += sprintf(buf, " reqs: %lu\n", stats->write_rq_num);
+  total_out += sprintf(
+      buf, " avg size: %lu\n",
+      (stats->total_write/stats->write_rq_num)
+      );
+  total_out += sprintf(buf, "total:\n");
+  total_out += sprintf(
+      buf, " reqs: %lu\n",
+      stats->read_rq_num + stats->write_rq_num
+      );
+  total_out += sprintf(
+      buf, " avg size: %lu\n",
+      (stats->total_read+stats->total_write)/(stats->read_rq_num+stats->write_rq_num)
+      );
+  return total_out;
+}
+
 int create_dmp_stat_file(struct sysfs_helper_t* reciever, struct stat_t* stats)
 {
   struct device_attribute* attr = kmalloc(sizeof(struct device_attribute), GFP_KERNEL);
