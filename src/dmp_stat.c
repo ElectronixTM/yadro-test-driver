@@ -5,9 +5,12 @@
 #include <linux/kobject.h>
 #include <linux/device.h>
 #include <linux/blk_types.h>
+#include <linux/module.h>
+
+#define MODULE_KOBJ ((((struct module*) THIS_MODULE)->mkobj).kobj)
 
 static ssize_t stats_show(struct device* dev, struct device_attribute* attr, char* buf);
-int create_dmp_stat_file(struct sysfs_helper_t* reciever)
+int create_dmp_stat_file(struct sysfs_helper_t* reciever, struct stat_t* stats)
 {
   struct device_attribute* attr = kmalloc(sizeof(struct device_attribute), GFP_KERNEL);
   if (NULL == attr)
@@ -16,14 +19,14 @@ int create_dmp_stat_file(struct sysfs_helper_t* reciever)
   }
   static DEVICE_ATTR_RO(stats);
   *attr = dev_attr_stats;
-  struct kobject* kobj = kobject_create_and_add("stat", kernel_kobj);
-  struct device* raw_dev = kobj_to_dev(kobj);
-  if (raw_dev == NULL)
+  struct device* module_dev = kobj_to_dev(&MODULE_KOBJ);
+  if (module_dev == NULL)
   {
     return -EINVAL;
   }
-  device_create_file(raw_dev, attr);
-  reciever->raw_device = raw_dev;
+  device_create_file(module_dev, attr);
+  module_dev->driver_data = stats;
+  reciever->raw_device = module_dev;
   reciever->dev_attr = attr;
   return 0;
 }
