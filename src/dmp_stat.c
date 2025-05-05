@@ -9,6 +9,10 @@
 
 #define MODULE_KOBJ ((((struct module*) THIS_MODULE)->mkobj).kobj)
 
+/**
+ * Prints information into stat/volumes in formatted way as required in task spec.
+ * relies on device_data in dev parameter. Returns amount of printed bytes
+ */
 static ssize_t stats_show(struct device* dev, struct device_attribute* attr, char* buf)
 {
   struct stat_t* stats = (struct stat_t*) dev_get_drvdata(dev);
@@ -41,6 +45,17 @@ static ssize_t stats_show(struct device* dev, struct device_attribute* attr, cha
   return total_out;
 }
 
+/**
+ * Creates file sys/module/dmp/stat/volumes and fills reciever with pointers,
+ * needed by sysfs. Provided data should be freed when file is not needed with
+ * `release_dmp_stat_file`
+ *
+ * @reciever - place in memory to store sysfs info to. Should then manually be
+ * freed with `release_dmp_stat_file`
+ *
+ * @stats - user provided place to take stats from. Owned by user and threated as
+ * read only
+ */
 int create_dmp_stat_file(struct sysfs_helper_t* reciever, struct stat_t* stats)
 {
   struct device_attribute* attr = kmalloc(sizeof(struct device_attribute), GFP_KERNEL);
@@ -62,6 +77,14 @@ int create_dmp_stat_file(struct sysfs_helper_t* reciever, struct stat_t* stats)
   return 0;
 }
 
+/**
+ * Releases file in sysfs and frees allocated kernel memory,
+ * used for `device` and `device_attribute`. It will implicitly
+ * invalidate the given pointer to NULL
+ *
+ * @reciever struct for sysfs which will be invalidated (all fields
+ * will be filled with NULL)
+ */
 int release_dmp_stat_file(struct sysfs_helper_t* reciever)
 {
   if (NULL == reciever)
