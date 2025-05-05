@@ -87,13 +87,13 @@ static int dmp_map(struct dm_target* ti, struct bio* bio)
   switch (bio_op(bio))
   {
     case REQ_OP_READ:
-      proxy_context->read_rq_num += 1;
-      proxy_context->total_read += bio->bi_iter.bi_size;
+      proxy_context->stats.read_rq_num += 1;
+      proxy_context->stats.total_read += bio->bi_iter.bi_size;
       break;
     case REQ_OP_WRITE_ZEROES:
     case REQ_OP_WRITE:
-      proxy_context->write_rq_num += 1;
-      proxy_context->total_write += bio->bi_iter.bi_size;
+      proxy_context->stats.write_rq_num += 1;
+      proxy_context->stats.total_write += bio->bi_iter.bi_size;
       break;
     default:
       printk(KERN_WARNING "[dmp_map] unsupported bio operation\n");
