@@ -9,6 +9,11 @@
 #include "proxy_type.h"
 #include "dmp_stat.h"
 
+// global stats from all the proxies accumulated
+struct stat_t global_stats;
+// sysfs 'volumes' file info
+struct sysfs_helper_t global_volumes_info;
+
 /**
  * Aside from mandatory parameters takes a path to device to be proxied.
  * Tries to get it and saves to context structure and initializes it's
@@ -43,12 +48,9 @@ static int dmp_ctr(struct dm_target* ti, unsigned int argc, char **argv)
     ti->error = "dm-proxy: Device lookup failed";
     goto error;
   }
+  proxy_context->stats = &global_stats;
+  proxy_context->sysfs = &global_volumes_info;
 
-  if (create_dmp_stat_file(&proxy_context->sysfs, &proxy_context->stats) != 0)
-  {
-    printk(KERN_ERR "[dmp_ctr] unable to create stats file\n");
-    goto error;
-  }
   ti->private = proxy_context;
   printk(
         KERN_DEBUG "[dmp_ctr] dm-proxy for %s has been "
@@ -93,13 +95,13 @@ static int dmp_map(struct dm_target* ti, struct bio* bio)
   switch (bio_op(bio))
   {
     case REQ_OP_READ:
-      proxy_context->stats.read_rq_num += 1;
-      proxy_context->stats.total_read += bio->bi_iter.bi_size;
+      proxy_context->stats->read_rq_num += 1;
+      proxy_context->stats->total_read += bio->bi_iter.bi_size;
       break;
     case REQ_OP_WRITE_ZEROES:
     case REQ_OP_WRITE:
-      proxy_context->stats.write_rq_num += 1;
-      proxy_context->stats.total_write += bio->bi_iter.bi_size;
+      proxy_context->stats->write_rq_num += 1;
+      proxy_context->stats->total_write += bio->bi_iter.bi_size;
       break;
     default:
       printk(KERN_WARNING "[dmp_map] unsupported bio operation\n");
