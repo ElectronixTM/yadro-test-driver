@@ -10,6 +10,7 @@
 
 #define MODULE_KOBJ ((((struct module*) THIS_MODULE)->mkobj).kobj)
 
+
 /**
  * Utility function that performs devision of total amount of
  * bytes on amount of requests, but performs check on zero division
@@ -65,6 +66,10 @@ static ssize_t volumes_show(struct device* dev, struct device_attribute* attr, c
   return total_out;
 }
 
+// variables, needed by sysfs
+static DEVICE_ATTR_RO(volumes);
+static struct device* stat_dev = NULL;
+
 /**
  * Creates file sys/module/dmp/stat/volumes and fills reciever with pointers,
  * needed by sysfs. Provided data should be freed when file is not needed with
@@ -83,20 +88,30 @@ int create_dmp_stat_file(struct sysfs_helper_t* reciever, struct stat_t* stats)
   {
     return -ENOMEM;
   }
-  static DEVICE_ATTR_RO(volumes);
   *attr = dev_attr_volumes;
-  // struct device* module_dev = kobj_to_dev(&MODULE_KOBJ);
-  struct kobject* stat_kobj = kobject_create_and_add("stat", &MODULE_KOBJ);
-  struct device* raw_dev = kobj_to_dev(stat_kobj);
-  if (raw_dev == NULL)
+  if (stat_dev == NULL)
   {
-    return -EINVAL;
+    struct kobject* stat_kobj = kobject_create_and_add("stat", &MODULE_KOBJ);
+    stat_dev = kobj_to_dev(stat_kobj);
   }
-  device_create_file(raw_dev, attr);
-  dev_set_drvdata(raw_dev, stats);
-  reciever->raw_device = raw_dev;
+  if (stat_dev == NULL)
+  {
+    goto error;
+  }
+  if (device_create_file(stat_dev, attr) != 0)
+  {
+    goto error_device_exists;
+  }
+  dev_set_drvdata(stat_dev, stats);
+  reciever->raw_device = stat_dev;
   reciever->dev_attr = attr;
   return 0;
+
+error_device_exists:
+  put_device(stat_dev);
+error:
+  kfree(attr);
+  return -EINVAL;
 }
 
 /**
