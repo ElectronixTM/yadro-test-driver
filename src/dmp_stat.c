@@ -116,7 +116,7 @@ int release_dmp_stat_file(struct sysfs_helper_t* reciever)
   device_remove_file(reciever->raw_device, reciever->dev_attr);
   kfree(reciever->dev_attr);
   reciever->dev_attr = NULL;
-  kfree(reciever->raw_device);
+  put_device(reciever->raw_device);
   reciever->raw_device = NULL;
   return 0;
 }
