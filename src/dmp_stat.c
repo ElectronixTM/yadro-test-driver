@@ -118,5 +118,6 @@ int release_dmp_stat_file(struct sysfs_helper_t* reciever)
   reciever->dev_attr = NULL;
   put_device(reciever->raw_device);
   reciever->raw_device = NULL;
+  printk(KERN_DEBUG "[release_dmp_stat_file] dmp stat file released\n");
   return 0;
 }
