@@ -107,7 +107,6 @@ static int dmp_map(struct dm_target* ti, struct bio* bio)
   }
   submit_bio_noacct(bio);
 
-  printk(KERN_DEBUG "[dmp_map] bio successfully proxied");
   return DM_MAPIO_SUBMITTED;
 }
 
