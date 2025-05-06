@@ -138,6 +138,7 @@ static int __init dmp_init(void)
   if (dm_register_target(&dmp_target) < 0)
   {
     printk(KERN_ERR "\n [dmp_init] Error while registering new target \n");
+    return 1;
   }
   if (create_dmp_stat_file(&global_volumes_info, &global_stats) != 0)
   {
