@@ -83,12 +83,6 @@ static struct device* stat_dev = NULL;
  */
 int create_dmp_stat_file(struct sysfs_helper_t* reciever, struct stat_t* stats)
 {
-  struct device_attribute* attr = kmalloc(sizeof(struct device_attribute), GFP_KERNEL);
-  if (NULL == attr)
-  {
-    return -ENOMEM;
-  }
-  *attr = dev_attr_volumes;
   if (stat_dev == NULL)
   {
     struct kobject* stat_kobj = kobject_create_and_add("stat", &MODULE_KOBJ);
@@ -98,19 +92,19 @@ int create_dmp_stat_file(struct sysfs_helper_t* reciever, struct stat_t* stats)
   {
     goto error;
   }
-  if (device_create_file(stat_dev, attr) != 0)
+  if (device_create_file(stat_dev, &dev_attr_volumes) != 0)
   {
     goto error_device_exists;
   }
   dev_set_drvdata(stat_dev, stats);
   reciever->raw_device = stat_dev;
-  reciever->dev_attr = attr;
+  reciever->dev_attr = &dev_attr_volumes;
   return 0;
 
 error_device_exists:
   put_device(stat_dev);
+  stat_dev = NULL;
 error:
-  kfree(attr);
   return -EINVAL;
 }
 
@@ -129,7 +123,7 @@ int release_dmp_stat_file(struct sysfs_helper_t* reciever)
     return -EINVAL;
   }
   device_remove_file(reciever->raw_device, reciever->dev_attr);
-  kfree(reciever->dev_attr);
+  // kfree(reciever->dev_attr);
   reciever->dev_attr = NULL;
   put_device(reciever->raw_device);
   reciever->raw_device = NULL;
