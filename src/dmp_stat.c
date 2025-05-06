@@ -102,10 +102,10 @@ int create_dmp_stat_file(struct sysfs_helper_t* reciever, struct stat_t* stats)
 /**
  * Releases file in sysfs and frees allocated kernel memory,
  * used for `device` and `device_attribute`. It will implicitly
- * invalidate the given pointer to NULL
+ * invalidate the pointers inside sysfs_helper_t to NULL
  *
  * @reciever struct for sysfs which will be invalidated (all fields
- * will be filled with NULL)
+ * will be set to NULL)
  */
 int release_dmp_stat_file(struct sysfs_helper_t* reciever)
 {
