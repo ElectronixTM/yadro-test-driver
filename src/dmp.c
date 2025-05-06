@@ -44,12 +44,12 @@ static int dmp_ctr(struct dm_target* ti, unsigned int argc, char **argv)
     goto error;
   }
 
-  ti->private = proxy_context;
   if (create_dmp_stat_file(&proxy_context->sysfs, &proxy_context->stats) != 0)
   {
     printk(KERN_ERR "[dmp_ctr] unable to create stats file\n");
     goto error;
   }
+  ti->private = proxy_context;
   printk(
         KERN_DEBUG "[dmp_ctr] dm-proxy for %s has been "
                    "successfully created\n", argv[0]
