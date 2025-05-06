@@ -6,41 +6,61 @@
 #include <linux/device.h>
 #include <linux/blk_types.h>
 #include <linux/module.h>
+#include <linux/printk.h>
 
 #define MODULE_KOBJ ((((struct module*) THIS_MODULE)->mkobj).kobj)
+
+/**
+ * Utility function that performs devision of total amount of
+ * bytes on amount of requests, but performs check on zero division
+ */
+static inline size_t calc_avg(size_t total, size_t amount)
+{
+  size_t avg = 0;
+  if (amount != 0)
+  {
+    avg = total/amount;
+  }
+  return avg;
+}
 
 /**
  * Prints information into stat/volumes in formatted way as required in task spec.
  * relies on device_data in dev parameter. Returns amount of printed bytes
  */
-static ssize_t stats_show(struct device* dev, struct device_attribute* attr, char* buf)
+static ssize_t volumes_show(struct device* dev, struct device_attribute* attr, char* buf)
 {
   struct stat_t* stats = (struct stat_t*) dev_get_drvdata(dev);
   if (NULL == stats)
   {
     return -EINVAL;
   }
-  ssize_t total_out = 0;
-  total_out += sprintf(buf, "read:\n");
-  total_out += sprintf(buf, " reqs: %lu\n", stats->read_rq_num);
-  total_out += sprintf(
-      buf, " avg size: %lu\n",
-      (stats->total_read/stats->read_rq_num)
-      );
-  total_out += sprintf(buf, "write:\n");
-  total_out += sprintf(buf, " reqs: %lu\n", stats->write_rq_num);
-  total_out += sprintf(
-      buf, " avg size: %lu\n",
-      (stats->total_write/stats->write_rq_num)
-      );
-  total_out += sprintf(buf, "total:\n");
-  total_out += sprintf(
-      buf, " reqs: %lu\n",
-      stats->read_rq_num + stats->write_rq_num
-      );
-  total_out += sprintf(
-      buf, " avg size: %lu\n",
-      (stats->total_read+stats->total_write)/(stats->read_rq_num+stats->write_rq_num)
+
+  printk(KERN_DEBUG "[volumes_show] read_rq_num: %lu\n", stats->read_rq_num);
+  printk(KERN_DEBUG "[volumes_show] total_read: %lu\n", stats->total_read);
+  printk(KERN_DEBUG "[volumes_show] read_rq_num: %lu\n", stats->read_rq_num);
+  printk(KERN_DEBUG "[volumes_show] total_write: %lu\n", stats->total_write);
+
+  ssize_t total_out = sprintf(
+      buf,
+      "read:\n"
+      " reqs: %lu\n"
+      " avg size: %lu\n"
+      "write:\n"
+      " reqs: %lu\n"
+      " avg size: %lu\n"
+      "total:\n"
+      " reqs: %lu\n"
+      " avg size: %lu\n",
+      stats->read_rq_num,
+      calc_avg(stats->total_read, stats->read_rq_num),
+      stats->write_rq_num,
+      calc_avg(stats->total_write, stats->write_rq_num),
+      stats->read_rq_num+stats->write_rq_num,
+      calc_avg(
+        stats->total_read+stats->total_write,
+        stats->read_rq_num+stats->write_rq_num
+        )
       );
   return total_out;
 }
