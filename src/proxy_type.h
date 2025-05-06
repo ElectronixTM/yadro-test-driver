@@ -2,6 +2,7 @@
 #define PROXY_TYPE_H
 
 #include <linux/types.h>
+#include <linux/device.h>
 
 /**
  * This struct is needed to provide sysfs file with
