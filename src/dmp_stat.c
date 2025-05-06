@@ -38,7 +38,7 @@ static ssize_t volumes_show(struct device* dev, struct device_attribute* attr, c
 
   printk(KERN_DEBUG "[volumes_show] read_rq_num: %lu\n", stats->read_rq_num);
   printk(KERN_DEBUG "[volumes_show] total_read: %lu\n", stats->total_read);
-  printk(KERN_DEBUG "[volumes_show] read_rq_num: %lu\n", stats->read_rq_num);
+  printk(KERN_DEBUG "[volumes_show] write_rq_num: %lu\n", stats->write_rq_num);
   printk(KERN_DEBUG "[volumes_show] total_write: %lu\n", stats->total_write);
 
   ssize_t total_out = sprintf(
