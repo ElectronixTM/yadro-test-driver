@@ -139,14 +139,14 @@ static int __init dmp_init(void)
   {
     printk(KERN_ERR "\n [dmp_init] Error while registering new target \n");
   }
-  printk(KERN_DEBUG "[dmp_init] dm proxy succesfully initialized\n");
+  printk(KERN_INFO "[dmp_init] dm proxy succesfully initialized\n");
   return 0;
 }
 
 static void __exit dmp_exit(void)
 {
+  printk(KERN_INFO "[dmp_exit] destructing proxy");
   dm_unregister_target(&dmp_target);
-  printk(KERN_DEBUG "[dmp_exit] proxy was unregistered");
 }
 
 module_init(dmp_init);
