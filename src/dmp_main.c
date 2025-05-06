@@ -113,7 +113,6 @@ static int dmp_map(struct dm_target* ti, struct bio* bio)
 static void dmp_dtr(struct dm_target* ti)
 {
   struct proxy_t* dmp_target = (struct proxy_t*) ti->private;
-  release_dmp_stat_file(&dmp_target->sysfs);
   dm_put_device(ti, dmp_target->dev);
   kfree(dmp_target);
   printk(
@@ -138,6 +137,12 @@ static int __init dmp_init(void)
   {
     printk(KERN_ERR "\n [dmp_init] Error while registering new target \n");
   }
+  if (create_dmp_stat_file(&global_volumes_info, &global_stats) != 0)
+  {
+    printk(KERN_ERR "[dmp_ctr] unable to create stats file\n");
+    dm_unregister_target(&dmp_target);
+    return 1;
+  }
   printk(KERN_INFO "[dmp_init] dm proxy succesfully initialized\n");
   return 0;
 }
@@ -145,6 +150,8 @@ static int __init dmp_init(void)
 static void __exit dmp_exit(void)
 {
   printk(KERN_INFO "[dmp_exit] destructing proxy");
+  release_dmp_stat_file(&global_volumes_info);
+  printk(KERN_DEBUG "[dmp_exit] stat/volumes file removed");
   dm_unregister_target(&dmp_target);
 }
 
