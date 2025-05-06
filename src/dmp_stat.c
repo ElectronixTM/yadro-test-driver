@@ -83,8 +83,8 @@ int create_dmp_stat_file(struct sysfs_helper_t* reciever, struct stat_t* stats)
   {
     return -ENOMEM;
   }
-  static DEVICE_ATTR_RO(stats);
-  *attr = dev_attr_stats;
+  static DEVICE_ATTR_RO(volumes);
+  *attr = dev_attr_volumes;
   // struct device* module_dev = kobj_to_dev(&MODULE_KOBJ);
   struct kobject* stat_kobj = kobject_create_and_add("stat", &MODULE_KOBJ);
   struct device* raw_dev = kobj_to_dev(stat_kobj);
