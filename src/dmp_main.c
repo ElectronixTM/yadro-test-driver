@@ -6,15 +6,19 @@
 #include <linux/bio.h>
 #include <linux/bvec.h>
 
-struct proxy_t
-{
-  struct dm_dev* dev;
-  size_t read_rq_num;
-  size_t write_rq_num;
-  size_t total_read;
-  size_t total_write;
-};
+#include "proxy_type.h"
+#include "dmp_stat.h"
 
+// global stats from all the proxies accumulated
+struct stat_t global_stats;
+// sysfs 'volumes' file info
+struct sysfs_helper_t global_volumes_info;
+
+/**
+ * Aside from mandatory parameters takes a path to device to be proxied.
+ * Tries to get it and saves to context structure and initializes it's
+ * statistics
+ */
 static int dmp_ctr(struct dm_target* ti, unsigned int argc, char **argv)
 {
   if (1 != argc)
@@ -31,6 +35,7 @@ static int dmp_ctr(struct dm_target* ti, unsigned int argc, char **argv)
                 "Probably not enough memory";
     return -ENOMEM;
   }
+  memset(proxy_context, 0, sizeof(struct proxy_t));
 
   if (dm_get_device(
         ti, argv[0],
@@ -41,17 +46,28 @@ static int dmp_ctr(struct dm_target* ti, unsigned int argc, char **argv)
   {
     printk(KERN_WARNING "[dmp_ctr] opening device failed");
     ti->error = "dm-proxy: Device lookup failed";
-    kfree(proxy_context);
-    return -EINVAL;
+    goto error;
   }
+  proxy_context->stats = &global_stats;
+  proxy_context->sysfs = &global_volumes_info;
+
   ti->private = proxy_context;
   printk(
         KERN_DEBUG "[dmp_ctr] dm-proxy for %s has been "
                    "successfully created\n", argv[0]
         );
   return 0;
+
+error:
+    kfree(proxy_context);
+    return -EINVAL;
 }
 
+/**
+ * Logging specified in task info into device context and redirects
+ * read and write calls to device. Other calls are dropped because
+ * unspecified in the task text.
+ */
 static int dmp_map(struct dm_target* ti, struct bio* bio)
 {
   struct proxy_t* proxy_context = (struct proxy_t*) ti->private;
@@ -68,6 +84,7 @@ static int dmp_map(struct dm_target* ti, struct bio* bio)
     return DM_MAPIO_KILL;
   }
 
+  // redirecting bio to proxied device
   bio_set_dev(bio, proxy_context->dev->bdev);
   if (bio->bi_bdev == NULL)
   {
@@ -78,13 +95,13 @@ static int dmp_map(struct dm_target* ti, struct bio* bio)
   switch (bio_op(bio))
   {
     case REQ_OP_READ:
-      proxy_context->read_rq_num += 1;
-      proxy_context->total_read += bio->bi_iter.bi_size;
+      proxy_context->stats->read_rq_num += 1;
+      proxy_context->stats->total_read += bio->bi_iter.bi_size;
       break;
     case REQ_OP_WRITE_ZEROES:
     case REQ_OP_WRITE:
-      proxy_context->write_rq_num += 1;
-      proxy_context->total_write += bio->bi_iter.bi_size;
+      proxy_context->stats->write_rq_num += 1;
+      proxy_context->stats->total_write += bio->bi_iter.bi_size;
       break;
     default:
       printk(KERN_WARNING "[dmp_map] unsupported bio operation\n");
@@ -92,7 +109,6 @@ static int dmp_map(struct dm_target* ti, struct bio* bio)
   }
   submit_bio_noacct(bio);
 
-  printk(KERN_DEBUG "[dmp_map] bio successfully proxied");
   return DM_MAPIO_SUBMITTED;
 }
 
@@ -122,15 +138,24 @@ static int __init dmp_init(void)
   if (dm_register_target(&dmp_target) < 0)
   {
     printk(KERN_ERR "\n [dmp_init] Error while registering new target \n");
+    return 1;
   }
-  printk(KERN_DEBUG "[dmp_init] dm proxy succesfully initialized\n");
+  if (create_dmp_stat_file(&global_volumes_info, &global_stats) != 0)
+  {
+    printk(KERN_ERR "[dmp_ctr] unable to create stats file\n");
+    dm_unregister_target(&dmp_target);
+    return 1;
+  }
+  printk(KERN_INFO "[dmp_init] dm proxy succesfully initialized\n");
   return 0;
 }
 
 static void __exit dmp_exit(void)
 {
+  printk(KERN_INFO "[dmp_exit] destructing proxy");
+  release_dmp_stat_file(&global_volumes_info);
+  printk(KERN_DEBUG "[dmp_exit] stat/volumes file removed");
   dm_unregister_target(&dmp_target);
-  printk(KERN_DEBUG "[dmp_exit] proxy was unregistered");
 }
 
 module_init(dmp_init);
