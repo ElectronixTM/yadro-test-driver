@@ -37,8 +37,8 @@ struct stat_t
 struct proxy_t
 {
   struct dm_dev* dev; /**< device to forward all bios to */
-  struct sysfs_helper_t sysfs;
-  struct stat_t stats;
+  struct sysfs_helper_t* sysfs;
+  struct stat_t* stats;
 };
 
 #endif
